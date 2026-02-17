@@ -1,6 +1,8 @@
-streamlit==1.29.0
-folium==0.19.4
-osmnx==2.1.0
-geopy==2.4.1
-geopandas==1.0.1
-streamlit-folium==0.26.1
+streamlit
+folium
+osmnx
+geopy
+geopandas
+shapely
+rtree
+scikit-learn
