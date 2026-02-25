@@ -13,7 +13,36 @@ st.set_page_config(
 
 # Title
 st.title("🗺️ Bhopal Route Planner")
-st.markdown("Enter any two locations in Bhopal to find the shortest route!")
+st.markdown("Select or enter any two locations in Bhopal to find the shortest route!")
+
+# Popular Bhopal locations
+POPULAR_LOCATIONS = [
+    "Custom Location (Type Below)",
+    "MANIT Bhopal",
+    "Bhopal Railway Station",
+    "DB Mall",
+    "Van Vihar National Park",
+    "Upper Lake (Bada Talab)",
+    "Lower Lake (Chhota Talab)",
+    "Taj-ul-Masajid",
+    "MP Nagar",
+    "New Market",
+    "Habibganj Railway Station",
+    "Raja Bhoj Airport",
+    "AIIMS Bhopal",
+    "Bharat Bhavan",
+    "Birla Temple",
+    "Shaukat Mahal",
+    "TT Nagar",
+    "Arera Colony",
+    "Shahpura",
+    "Kolar",
+    "Bairagarh",
+    "BHEL Bhopal",
+    "Nehru Nagar",
+    "Bittan Market",
+    "Chowk Bazaar"
+]
 
 # Cache road network
 @st.cache_resource
@@ -31,16 +60,46 @@ def geocode(place):
 # Load graph
 G = load_graph()
 
-# Input section
+# Input section with dropdowns
 col1, col2 = st.columns(2)
+
 with col1:
-    start_name = st.text_input("📍 Start Location", placeholder="e.g. MANIT Bhopal")
+    st.subheader("📍 Start Location")
+    start_dropdown = st.selectbox(
+        "Choose from popular locations:",
+        POPULAR_LOCATIONS,
+        key="start_select"
+    )
+    
+    if start_dropdown == "Custom Location (Type Below)":
+        start_name = st.text_input(
+            "Enter custom start location:",
+            placeholder="e.g. Roshanpura",
+            key="start_input"
+        )
+    else:
+        start_name = start_dropdown
+
 with col2:
-    end_name = st.text_input("🏁 End Location", placeholder="e.g. DB Mall")
+    st.subheader("🏁 End Location")
+    end_dropdown = st.selectbox(
+        "Choose from popular locations:",
+        POPULAR_LOCATIONS,
+        key="end_select"
+    )
+    
+    if end_dropdown == "Custom Location (Type Below)":
+        end_name = st.text_input(
+            "Enter custom end location:",
+            placeholder="e.g. Piplani",
+            key="end_input"
+        )
+    else:
+        end_name = end_dropdown
 
 # Calculate button
 if st.button("🚗 Find Route", type="primary"):
-    if start_name and end_name:
+    if start_name and end_name and start_name != "Custom Location (Type Below)" and end_name != "Custom Location (Type Below)":
         with st.spinner("Calculating route..."):
 
             # Geocode locations
@@ -90,24 +149,23 @@ if st.button("🚗 Find Route", type="primary"):
                     # Start marker
                     folium.Marker(
                         location=[start.latitude, start.longitude],
-                        popup=folium.Popup(f"START: {start_name}", parse_html=False),
-                        icon=folium.Icon(color='green')
+                        popup=f"START: {start_name}",
+                        icon=folium.Icon(color='green', icon='play', prefix='fa')
                     ).add_to(m)
 
                     # End marker
                     folium.Marker(
                         location=[end.latitude, end.longitude],
-                        popup=folium.Popup(f"END: {end_name}", parse_html=False),
-                        icon=folium.Icon(color='red')
+                        popup=f"END: {end_name}",
+                        icon=folium.Icon(color='red', icon='flag', prefix='fa')
                     ).add_to(m)
 
                     # Display map
-                    map_html = m._repr_html_()
-                    st.components.v1.html(map_html, width=1200, height=500)
+                    st_folium(m, width=1200, height=500)
 
                 else:
-                    st.error("❌ No route found!")
+                    st.error("❌ No route found between these locations!")
             else:
-                st.error("❌ Could not find locations. Try different names!")
+                st.error("❌ Could not find one or both locations. Try different names!")
     else:
-        st.warning("⚠️ Please enter both locations!")
+        st.warning("⚠️ Please select or enter both start and end locations!")
