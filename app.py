@@ -3,6 +3,7 @@ import folium
 import osmnx as ox
 from geopy.geocoders import Nominatim
 from streamlit_folium import folium_static
+import time
 
 # Page config
 st.set_page_config(
@@ -13,7 +14,7 @@ st.set_page_config(
 
 # Title
 st.title("🗺️ Bhopal Route Planner")
-st.markdown("Select any two locations in Bhopal to find the shortest route!")
+st.markdown("Select or enter any two locations in Bhopal to find the shortest route!")
 
 # Popular Bhopal locations
 POPULAR_LOCATIONS = [
@@ -22,8 +23,8 @@ POPULAR_LOCATIONS = [
     "Bhopal Railway Station",
     "DB Mall",
     "Van Vihar National Park",
-    "Upper Lake (Bada Talab)",
-    "Lower Lake (Chhota Talab)",
+    "Upper Lake",
+    "Lower Lake",
     "Taj-ul-Masajid",
     "MP Nagar",
     "New Market",
@@ -31,7 +32,7 @@ POPULAR_LOCATIONS = [
     "Raja Bhoj Airport",
     "AIIMS Bhopal",
     "Bharat Bhavan",
-    "Birla Temple",
+    "Birla Mandir",
     "Shaukat Mahal",
     "TT Nagar",
     "Arera Colony",
@@ -44,6 +45,16 @@ POPULAR_LOCATIONS = [
     "Chowk Bazaar"
 ]
 
+# Manual coordinates for locations that Nominatim struggles with
+LOCATION_COORDINATES = {
+    "Bharat Bhavan": (23.2380, 77.4092),
+    "Birla Mandir": (23.2367, 77.4015),
+    "Upper Lake": (23.2494, 77.3897),
+    "Lower Lake": (23.2386, 77.4127),
+    "Bittan Market": (23.2599, 77.4126),
+    "Chowk Bazaar": (23.2645, 77.4088),
+}
+
 # Cache road network
 @st.cache_resource
 def load_graph():
@@ -51,11 +62,39 @@ def load_graph():
         G = ox.graph_from_place('Bhopal, India', network_type='drive')
     return G
 
-# Geocode function
+# Improved geocode function with fallback
 def geocode(place):
-    geolocator = Nominatim(user_agent="bhopal_route_app")
-    location = geolocator.geocode(f"{place}, Bhopal, India")
-    return location
+    # Check manual coordinates first
+    if place in LOCATION_COORDINATES:
+        class ManualLocation:
+            def __init__(self, lat, lon, name):
+                self.latitude = lat
+                self.longitude = lon
+                self.address = name
+        
+        coords = LOCATION_COORDINATES[place]
+        return ManualLocation(coords[0], coords[1], place)
+    
+    # Try Nominatim with multiple variations
+    geolocator = Nominatim(user_agent="bhopal_route_app_v2")
+    
+    search_variations = [
+        f"{place}, Bhopal, Madhya Pradesh, India",
+        f"{place}, Bhopal, India",
+        f"{place}, Bhopal",
+        place
+    ]
+    
+    for search_term in search_variations:
+        try:
+            time.sleep(1)  # Respect Nominatim rate limits
+            location = geolocator.geocode(search_term, timeout=10)
+            if location:
+                return location
+        except Exception as e:
+            continue
+    
+    return None
 
 # Load graph
 G = load_graph()
@@ -160,14 +199,15 @@ if st.button("🚗 Find Route", type="primary"):
                         icon=folium.Icon(color='red', icon='flag', prefix='fa')
                     ).add_to(m)
 
-                    # Display map (FIXED - using folium_static)
+                    # Display map
                     folium_static(m, width=1200, height=500)
 
                 else:
                     st.error("❌ No route found between these locations!")
             else:
-                st.error("❌ Could not find one or both locations. Try different names!")
+                if not start:
+                    st.error(f"❌ Could not find '{start_name}'. Try a different name or use Custom Location.")
+                if not end:
+                    st.error(f"❌ Could not find '{end_name}'. Try a different name or use Custom Location.")
     else:
         st.warning("⚠️ Please select or enter both start and end locations!")
-
-
