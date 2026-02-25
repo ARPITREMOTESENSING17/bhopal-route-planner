@@ -6,3 +6,5 @@ geopandas
 shapely
 rtree
 scikit-learn
+streamlit-folium
+
