@@ -13,7 +13,7 @@ st.set_page_config(
 
 # Title
 st.title("🗺️ Bhopal Route Planner")
-st.markdown("Enter any two locations in Bhopal to find the shortest route!")
+st.markdown("Select any two locations in Bhopal to find the shortest route!")
 
 # Popular Bhopal locations
 POPULAR_LOCATIONS = [
@@ -169,4 +169,5 @@ if st.button("🚗 Find Route", type="primary"):
                 st.error("❌ Could not find one or both locations. Try different names!")
     else:
         st.warning("⚠️ Please select or enter both start and end locations!")
+
 
