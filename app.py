@@ -28,7 +28,7 @@ POPULAR_LOCATIONS = [
     "Taj-ul-Masajid",
     "MP Nagar",
     "New Market",
-    "Habibganj Railway Station",
+    "Rani Kamlapati Railway Station",
     "Raja Bhoj Airport",
     "AIIMS Bhopal",
     "Bharat Bhavan",
@@ -211,3 +211,4 @@ if st.button("🚗 Find Route", type="primary"):
                     st.error(f"❌ Could not find '{end_name}'. Try a different name or use Custom Location.")
     else:
         st.warning("⚠️ Please select or enter both start and end locations!")
+
